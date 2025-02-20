@@ -12,16 +12,16 @@ export function ItemPage(
   { id }: ItemPageProps,
   context: RenderContext,
 ): TemplateResult {
-  const state = context.use(ItemState);
+  const store = context.use(ItemState);
   const [item, error, isLoading] = context.use([
-    state.item$,
-    state.error$,
-    state.isLoading$,
+    store.item$,
+    store.error$,
+    store.isLoading$,
   ]);
 
   context.useEffect(() => {
-    if (state.item$.value === null || state.item$.value.id !== id) {
-      state.fetchItem(id);
+    if (store.item$.value === null || store.item$.value.id !== id) {
+      store.fetchItem(id);
     }
   }, [id]);
 
