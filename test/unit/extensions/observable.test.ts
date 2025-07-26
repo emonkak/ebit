@@ -103,7 +103,24 @@ describe('Observable', () => {
       expect(state$.version).toBe(3);
     });
 
-    it('assigns the new value as a snapshot', () => {
+    it('assigns a new value to the accessor property', () => {
+      const state$ = Observable.from({
+        _count: 0,
+        get count() {
+          return this._count;
+        },
+        set count(count) {
+          this._count = count;
+        },
+      });
+
+      state$.get('count').value++;
+
+      expect(state$.value).toStrictEqual({ _count: 1, count: 1 });
+      expect(state$.version).toBe(1);
+    });
+
+    it('assigns a new value as a snapshot', () => {
       const state1 = { count: 0 };
       const state2 = { count: 1 };
       const state$ = Observable.from(state1);
@@ -212,6 +229,21 @@ describe('Observable', () => {
         _count: 1,
         count: 1,
       });
+    });
+
+    it('throws an error when trying to mutate to a readonly property', () => {
+      const state$ = Observable.from({
+        _count: 0,
+        get count() {
+          return this._count;
+        },
+      });
+
+      expect(() => {
+        state$.mutate((state) => {
+          (state as any).count++;
+        });
+      }).toThrow();
     });
 
     it('throws an error when trying to mutate to a non-object descriptor', () => {
