@@ -165,7 +165,6 @@ export function createTemplate(
             'which creates an XSS vulnerability or causes an invalid template error.',
           child,
         );
-        break;
       }
     }
   }
