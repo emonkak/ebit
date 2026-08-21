@@ -18,7 +18,6 @@ export {
   createComponent,
   type HookFunction,
   type HookObject,
-  Ref,
   RenderContext,
 } from './component.js';
 export { DOMAdapter } from './dom/adapter.js';
@@ -37,6 +36,7 @@ export {
   html,
   math,
   Partial,
+  Ref,
   svg,
   text,
 } from './velement.js';

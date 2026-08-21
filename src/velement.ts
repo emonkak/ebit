@@ -112,6 +112,28 @@ export class Partial {
   }
 }
 
+export class Ref<T> implements Bindable {
+  current: T;
+
+  constructor(current: T) {
+    this.current = current;
+    DEBUG: {
+      Object.seal(this);
+    }
+  }
+
+  [toElement](): VElement {
+    return createBind((instance: T) => {
+      this.current = instance;
+      return () => {
+        if (this.current === instance) {
+          this.current = null as T;
+        }
+      };
+    });
+  }
+}
+
 export function createBind<T>(value: T): VBind<T> {
   return new VNode(Bind, { value }, []);
 }
