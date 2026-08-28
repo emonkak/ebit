@@ -1,7 +1,7 @@
 import { createComponent, html } from 'barebind';
 
 import { TodoStore } from './store.js';
-import { TodoInput } from './TodoInput.js';
+import { TodoInput } from './todo-input.js';
 
 export interface HeaderProps {}
 

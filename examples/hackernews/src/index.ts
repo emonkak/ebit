@@ -2,7 +2,7 @@ import { DOMAdapter, DOMRoot, Runtime } from 'barebind';
 import { UpdateLogger } from 'barebind/addons/update-logger';
 import { UpdateProfiler } from 'barebind/addons/update-profiler';
 
-import { App } from './App.js';
+import { App } from './app.js';
 import { AppStore } from './store.js';
 
 const runtime = new Runtime(new DOMAdapter());

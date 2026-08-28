@@ -1,7 +1,7 @@
 import { decoded, integer, Router, route } from 'barebind/addons/router';
-import { ItemPage } from './item/ItemPage.js';
-import { StoriesPage } from './story/StoriesPage.js';
-import { UserPage } from './user/UserPage.js';
+import { ItemPage } from './item/item-page.js';
+import { StoriesPage } from './story/stories-page.js';
+import { UserPage } from './user/user-page.js';
 
 export const router = new Router<unknown>([
   route([''], () => StoriesPage({ type: 'news' })),

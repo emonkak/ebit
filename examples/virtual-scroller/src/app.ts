@@ -2,7 +2,7 @@ import { createComponent, html } from 'barebind';
 import {
   VirtualScroller,
   type VirtualScrollerHandle,
-} from './VirtualScroller.js';
+} from './virtual-scroller.js';
 
 export interface AppProps {
   items: { height: number; label: string }[];

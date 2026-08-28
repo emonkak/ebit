@@ -1,7 +1,7 @@
 import { createComponent, html } from 'barebind';
 
 import { TodoStore } from './store.js';
-import { TodoItem } from './TodoItem.js';
+import { TodoItem } from './todo-item.js';
 
 export interface MainProps {}
 

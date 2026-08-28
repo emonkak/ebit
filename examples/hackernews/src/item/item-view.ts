@@ -1,7 +1,7 @@
 import { createComponent, html } from 'barebind';
 
 import type { Item } from '../store.js';
-import { CommentView } from './CommentView.js';
+import { CommentView } from './comment-view.js';
 
 export interface ItemViewProps {
   item: Item;

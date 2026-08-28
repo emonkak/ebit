@@ -1,7 +1,7 @@
 import { createComponent, html } from 'barebind';
 
 import { AppStore } from '../store.js';
-import { ItemView } from './ItemView.js';
+import { ItemView } from './item-view.js';
 
 export interface ItemPageProps {
   id: number;

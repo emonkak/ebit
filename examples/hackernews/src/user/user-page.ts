@@ -1,7 +1,7 @@
 import { createComponent, html } from 'barebind';
 
 import { AppStore } from '../store.js';
-import { UserView } from './UserView.js';
+import { UserView } from './user-view.js';
 
 export interface UserPageProps {
   id: string;

@@ -1,7 +1,7 @@
 import { createComponent, html } from 'barebind';
 
 import { AppStore, type StoryType } from '../store.js';
-import { StoryView } from './StoryView.js';
+import { StoryView } from './story-view.js';
 
 export interface StoriesPageProps {
   type: StoryType;
