@@ -14,9 +14,9 @@ export class NavigationContext {
   }
 }
 
-export function SyncNavigation(
+export function SyncNavigationScene(
   adapter: NavigationAdapter,
-): HookFunction<NavigationContext> {
+): HookFunction<NavigationScene> {
   return (context) => {
     const [scene, setScene] = context.useState<NavigationScene>(() => ({
       url: adapter.getCurrentURL(),
@@ -32,10 +32,8 @@ export function SyncNavigation(
       });
     }, [adapter]);
 
-    const navigationContext = new NavigationContext(adapter, scene);
+    context.provide(new NavigationContext(adapter, scene));
 
-    context.provide(navigationContext);
-
-    return navigationContext;
+    return scene;
   };
 }

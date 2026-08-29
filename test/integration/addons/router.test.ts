@@ -2,7 +2,7 @@ import { createComponent, DOMAdapter, DOMRoot, html, Runtime } from 'barebind';
 import {
   InMemoryAdapter,
   NavigationContext,
-  SyncNavigation,
+  SyncNavigationScene,
 } from 'barebind/addons/router';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
@@ -26,7 +26,7 @@ describe('Router addon', () => {
     const adapter = new InMemoryAdapter('/home', { user: 1 });
 
     const App = createComponent(function App() {
-      const { scene } = this.use(SyncNavigation(adapter));
+      const scene = this.use(SyncNavigationScene(adapter));
       return html`<div>${scene.url}</div>`;
     });
 
@@ -46,7 +46,7 @@ describe('Router addon', () => {
     });
 
     const App = createComponent(function App() {
-      this.use(SyncNavigation(adapter));
+      this.use(SyncNavigationScene(adapter));
       return html`<div><${Child({})}></div>`;
     });
 
@@ -63,7 +63,7 @@ describe('Router addon', () => {
     const adapter = new InMemoryAdapter('/initial', { key: 'val' });
 
     const App = createComponent(function App() {
-      const { scene } = this.use(SyncNavigation(adapter));
+      const scene = this.use(SyncNavigationScene(adapter));
       const state = scene.state as { key: string } | undefined;
       return html`<div>${scene.url}:${state?.key}:${scene.navigationType}</div>`;
     });

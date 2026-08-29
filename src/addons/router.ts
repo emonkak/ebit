@@ -10,7 +10,7 @@ export {
 } from './router/adapter.js';
 export {
   NavigationContext,
-  SyncNavigation,
+  SyncNavigationScene,
 } from './router/hooks.js';
 export {
   choice,
