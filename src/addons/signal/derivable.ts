@@ -443,35 +443,42 @@ function resolveProperty<T>(
 }
 
 function setPendingValue<T>(receiver: Derivable<T>, newValue: T): void {
-  const oldValue = receiver._source.value;
-  // Intentionally throws a TypeError if signal is a Computed (which has no setter).
+  const { value: oldValue, version: oldVersion } = receiver._source;
+
+  // Intentionally throws a TypeError if signal is readonly (which has no
+  // setter).
   (receiver._source as WritableSignal<T>).value = newValue;
-  for (
-    let owner = receiver._owner, reversePath = [receiver._key!];
-    owner !== null;
-    owner = owner._owner
-  ) {
-    if (owner._source instanceof WritableSignal) {
-      const level = reversePath.length;
-      owner._source.invalidate({
-        type: 'set',
-        source: receiver._source,
-        get path() {
-          return reversePath.slice(0, level).reverse();
-        },
-        oldValue,
-        newValue,
-      });
+
+  if (receiver._source.version > oldVersion) {
+    for (
+      let owner = receiver._owner, reversePath = [receiver._key!];
+      owner !== null;
+      owner = owner._owner
+    ) {
+      if (owner._source instanceof WritableSignal) {
+        const level = reversePath.length;
+        owner._source.invalidate({
+          type: 'set',
+          source: receiver._source,
+          get path() {
+            return reversePath.slice(0, level).reverse();
+          },
+          oldValue,
+          newValue,
+        });
+      }
+      owner._flags |= FLAG_DIRTY_VALUE;
+      reversePath.push(owner._key!);
     }
-    owner._flags |= FLAG_DIRTY_VALUE;
-    reversePath.push(owner._key!);
   }
+
   if (receiver._properties !== null) {
     for (const prop of receiver._properties.values()) {
       prop._owner = null;
     }
     receiver._properties.clear();
   }
+
   receiver._flags |= FLAG_PENDING_VALUE;
   receiver._flags &= ~(FLAG_NEEDS_COMMIT | FLAG_DELETED_PROPERTY);
 }

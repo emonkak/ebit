@@ -62,6 +62,36 @@ describe('Derivable', () => {
         newValue: { count: 1 },
       });
     });
+
+    it('propagates to ancestors when a deep property value changes', () => {
+      const state$ = Derivable.from({ nested: { value: 1 } });
+      const subscriber = vi.fn();
+      state$.subscribe(subscriber);
+
+      state$.get('nested').get('value').value = 2;
+
+      expect(subscriber).toHaveBeenCalledOnce();
+      expect(subscriber).toHaveBeenCalledWith({
+        type: 'set',
+        source: expect.any(Signal),
+        path: ['nested', 'value'],
+        oldValue: 1,
+        newValue: 2,
+      });
+    });
+
+    it('does not propagate to the parent when a deep property value is unchanged', () => {
+      const state$ = Derivable.from({ nested: { value: 1 } });
+      const subscriber = vi.fn();
+      state$.subscribe(subscriber);
+      const version = state$.version;
+
+      state$.get('nested').get('value').value = 1;
+
+      expect(subscriber).not.toHaveBeenCalled();
+      expect(state$.version).toBe(version);
+      expect(state$.value).toStrictEqual({ nested: { value: 1 } });
+    });
   });
 
   describe('get version()', () => {
