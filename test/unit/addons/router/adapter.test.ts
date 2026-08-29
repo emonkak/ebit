@@ -3,6 +3,7 @@ import {
   BrowserAdapter,
   HashAdapter,
   InMemoryAdapter,
+  InMemoryInterceptor,
 } from '@/addons/router/adapter.js';
 
 describe('BrowserAdapter', () => {
@@ -400,16 +401,14 @@ describe('InMemoryAdapter', () => {
       adapter.listen(listener);
       await adapter.navigate('/bar', { state: 42 });
 
+      expect(listener).toHaveBeenCalledOnce();
       expect(listener).toHaveBeenCalledWith(
         {
           url: '/bar',
           state: 42,
           navigationType: 'push',
         },
-        {
-          intercept: expect.any(Function),
-          scroll: expect.any(Function),
-        },
+        expect.any(InMemoryInterceptor),
       );
     });
 
@@ -471,10 +470,7 @@ describe('InMemoryAdapter', () => {
           state: undefined,
           navigationType: 'push',
         },
-        {
-          intercept: expect.any(Function),
-          scroll: expect.any(Function),
-        },
+        expect.any(InMemoryInterceptor),
       );
     });
 
@@ -492,11 +488,7 @@ describe('InMemoryAdapter', () => {
           state: undefined,
           navigationType: 'replace',
         },
-
-        {
-          intercept: expect.any(Function),
-          scroll: expect.any(Function),
-        },
+        expect.any(InMemoryInterceptor),
       );
     });
 
@@ -514,11 +506,64 @@ describe('InMemoryAdapter', () => {
           state: undefined,
           navigationType: 'replace',
         },
-        {
-          intercept: expect.any(Function),
-          scroll: expect.any(Function),
-        },
+        expect.any(InMemoryInterceptor),
       );
+    });
+
+    it('aborts the pending navigation when a new navigation interrupts it', async () => {
+      const adapter = new InMemoryAdapter('/foo', null);
+      const firstController = Promise.withResolvers<void>();
+      const secondController = Promise.withResolvers<void>();
+
+      adapter.listen(({ url }, interceptor) => {
+        switch (url) {
+          case '/bar':
+            interceptor.intercept({
+              handler: () => firstController.promise,
+            });
+            break;
+          case '/baz':
+            interceptor.intercept({
+              handler: () => secondController.promise,
+            });
+            break;
+        }
+      });
+
+      const first = adapter.navigate('/bar');
+      const second = adapter.navigate('/baz');
+
+      firstController.resolve();
+      secondController.resolve();
+
+      await expect(first).rejects.toThrow(
+        expect.objectContaining({ name: 'AbortError' }),
+      );
+      await expect(second).resolves.toBe(undefined);
+      expect(adapter.getCurrentURL()).toBe('/baz');
+      expect(adapter.getCurrentState()).toBe(undefined);
+    });
+
+    it('cancels the navigation when the interceptor calls preventDefault', async () => {
+      const adapter = new InMemoryAdapter('/foo', null);
+      let signal: AbortSignal | undefined;
+
+      adapter.listen((_scene, interceptor) => {
+        signal = interceptor.signal;
+        interceptor.intercept({
+          handler: () => {
+            interceptor.preventDefault();
+          },
+        });
+      });
+
+      await expect(adapter.navigate('/bar')).rejects.toThrow(
+        expect.objectContaining({ name: 'AbortError' }),
+      );
+
+      expect(signal?.aborted).toBe(true);
+      expect(adapter.getCurrentURL()).toBe('/foo');
+      expect(adapter.getCurrentState()).toBe(null);
     });
   });
 });

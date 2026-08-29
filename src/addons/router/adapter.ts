@@ -15,7 +15,10 @@ export interface NavigationAdapter {
   navigate(url: string, options?: NavigationNavigateOptions): Promise<void>;
 }
 
-export type NavigationInterceptor = Pick<NavigateEvent, 'intercept' | 'scroll'>;
+export type NavigationInterceptor = Pick<
+  NavigateEvent,
+  'intercept' | 'preventDefault' | 'scroll' | 'signal'
+>;
 
 export interface NavigationScene {
   url: string;
@@ -132,6 +135,7 @@ export class HashAdapter implements NavigationAdapter {
 export class InMemoryAdapter implements NavigationAdapter {
   private _url: string;
   private _state: unknown;
+  private _interceptor: InMemoryInterceptor | null = null;
   private readonly _listeners: Set<NavigationSceneListener> = new Set();
 
   constructor(url: string, state: unknown) {
@@ -166,26 +170,51 @@ export class InMemoryAdapter implements NavigationAdapter {
           ? 'replace'
           : 'push';
     const scene = { url, state, navigationType };
-    const interceptor: NavigationInterceptor = {
-      async intercept({ handler } = {}) {
-        const promise = handler?.();
-        if (promise !== undefined) {
-          promises.push(promise);
-        }
-      },
-      scroll() {},
-    };
-    const promises: PromiseLike<void>[] = [];
+    const interceptor = new InMemoryInterceptor();
+
+    this._interceptor?._controller.abort();
+    this._interceptor = interceptor;
 
     for (const listener of this._listeners) {
       listener(scene, interceptor);
     }
 
-    await Promise.all(promises);
-
-    this._url = url;
-    this._state = state;
+    try {
+      await Promise.all(interceptor._promises);
+      interceptor._controller.signal.throwIfAborted();
+      this._url = url;
+      this._state = state;
+    } finally {
+      this._interceptor = null;
+    }
   }
+}
+
+/**
+ * @internal
+ */
+export class InMemoryInterceptor implements NavigationInterceptor {
+  /** @internal */
+  readonly _promises: PromiseLike<void>[] = [];
+  /** @internal */
+  readonly _controller: AbortController = new AbortController();
+
+  get signal(): AbortSignal {
+    return this._controller.signal;
+  }
+
+  intercept({ handler }: NavigationInterceptOptions = {}): void {
+    const promise = handler?.();
+    if (promise !== undefined) {
+      this._promises.push(promise);
+    }
+  }
+
+  preventDefault(): void {
+    this._controller.abort();
+  }
+
+  scroll(): void {}
 }
 
 function stripLeadingHashmark(s: string): string {
