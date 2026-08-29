@@ -1,19 +1,10 @@
-import {
-  createComponent,
-  DOMAdapter,
-  DOMRoot,
-  html,
-  Runtime,
-  type UpdateHandle,
-  type UpdateOptions,
-} from 'barebind';
+import { createComponent, DOMAdapter, DOMRoot, html, Runtime } from 'barebind';
 import {
   InMemoryAdapter,
   NavigationContext,
-  type NavigationScene,
   SyncNavigation,
 } from 'barebind/addons/router';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 describe('Router addon', () => {
   let container: Element;
@@ -82,54 +73,5 @@ describe('Router addon', () => {
 
     await adapter.navigate('/next', { state: { key: 'next' } });
     expect(container.innerHTML).toBe('<div>/next:next:push</div>');
-  });
-
-  it('falls back to the default handler when intercept returns undefined', async () => {
-    const adapter = new InMemoryAdapter('/home', null);
-
-    const App = createComponent(function App() {
-      const { scene } = this.use(SyncNavigation(adapter, () => undefined));
-      return html`<div>${scene.url}</div>`;
-    });
-
-    await root.render(App({})).finished;
-    expect(container.innerHTML).toBe('<div>/home</div>');
-
-    await adapter.navigate('/about');
-    expect(container.innerHTML).toBe('<div>/about</div>');
-  });
-
-  it('passes the pending scene and setScene to the intercept callback', async () => {
-    const adapter = new InMemoryAdapter('/home', null);
-    const intercept = vi.fn(
-      (
-        scene: NavigationScene,
-        setScene: (
-          scene: NavigationScene,
-          options: UpdateOptions,
-        ) => UpdateHandle,
-      ) => ({
-        handler: () => setScene(scene, {}).finished,
-      }),
-    );
-
-    const App = createComponent(function App() {
-      const { scene } = this.use(SyncNavigation(adapter, intercept));
-      return html`<div>${scene.url}</div>`;
-    });
-
-    await root.render(App({})).finished;
-    await adapter.navigate('/about', { state: { key: 'next' } });
-
-    expect(intercept).toHaveBeenCalledTimes(1);
-    expect(intercept).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: '/about',
-        state: { key: 'next' },
-        navigationType: 'push',
-      }),
-      expect.any(Function),
-    );
-    expect(container.innerHTML).toBe('<div>/about</div>');
   });
 });

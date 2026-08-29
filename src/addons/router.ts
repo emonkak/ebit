@@ -11,7 +11,7 @@ export {
 export {
   NavigationContext,
   SyncNavigation,
-} from './router/hook.js';
+} from './router/hooks.js';
 export {
   choice,
   decoded,
