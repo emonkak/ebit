@@ -19,7 +19,7 @@ export function SyncNavigation(
   adapter: NavigationAdapter,
   intercept?: (
     scene: NavigationScene,
-    setScene: (scene: NavigationScene, options: UpdateOptions) => UpdateHandle,
+    setScene: (scene: NavigationScene, options?: UpdateOptions) => UpdateHandle,
   ) => NavigationInterceptOptions | undefined,
 ): HookFunction<NavigationContext> {
   return (context) => {
