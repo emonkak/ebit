@@ -58,6 +58,17 @@ export abstract class Signal<T> implements Bindable, HookObject<T> {
     return new Computed<TResult, [Signal<T>]>(selector, [this]);
   }
 
+  scan<TResult>(
+    accumulator: (result: TResult, value: T) => TResult,
+    initialResult: TResult,
+  ): Computed<TResult, [Signal<T>]> {
+    let result = initialResult;
+    return new Computed<TResult, [Signal<T>]>(
+      (value) => (result = accumulator(result, value)),
+      [this],
+    );
+  }
+
   abstract subscribe(subscriber: Subscriber): Unsubscribe;
 
   onUse(context: RenderContext): T {

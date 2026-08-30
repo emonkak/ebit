@@ -136,6 +136,63 @@ describe('Atom', () => {
     });
   });
 
+  describe('scan()', () => {
+    it('creates a computed signal with the accumulator', () => {
+      const atom = new Atom(1);
+      const computed = atom.scan((sum, value) => sum + value, 0);
+
+      expect(computed).toBeInstanceOf(Computed);
+      expect(computed['_dependencies']).toStrictEqual([atom]);
+    });
+
+    it('accumulates the result across updates', () => {
+      const atom = new Atom(1);
+      const callback = vi.fn((sum: number, value: number) => sum + value);
+      const computed = atom.scan(callback, 0);
+
+      expect(computed.value).toBe(1);
+      expect(callback).toHaveBeenLastCalledWith(0, 1);
+
+      atom.value = 2;
+      expect(computed.value).toBe(3);
+      expect(callback).toHaveBeenLastCalledWith(1, 2);
+
+      atom.value = 3;
+      expect(computed.value).toBe(6);
+      expect(callback).toHaveBeenLastCalledWith(3, 3);
+    });
+
+    it('recomputes only once per source update due to memoization', () => {
+      const atom = new Atom(1);
+      const callback = vi.fn((sum: number, value: number) => sum + value);
+      const computed = atom.scan(callback, 0);
+
+      expect(computed.value).toBe(1);
+      expect(computed.value).toBe(1);
+
+      atom.value = 2;
+
+      expect(computed.value).toBe(3);
+      expect(computed.value).toBe(3);
+      expect(callback).toHaveBeenCalledTimes(2);
+    });
+
+    it('recomputes the accumulator only on actual changes', () => {
+      const atom = new Atom(0);
+      const callback = vi.fn((sum: number, value: number) => sum + value);
+      const computed = atom.scan(callback, 10);
+
+      expect(computed.value).toBe(10);
+
+      atom.value = 0;
+      expect(computed.value).toBe(10);
+
+      atom.value = 2;
+      expect(computed.value).toBe(12);
+      expect(callback).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('write()', () => {
     it('writes the value without events', () => {
       const atom = new Atom('a');
