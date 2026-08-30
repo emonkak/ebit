@@ -132,7 +132,9 @@ describe('Atom', () => {
 
       expect(computed).toBeInstanceOf(Computed);
       expect(computed.value).toBe(20);
-      expect(computed['_dependencies']).toStrictEqual([atom]);
+      expect((computed as Computed<number>)['_dependencies']).toStrictEqual([
+        atom,
+      ]);
     });
   });
 
@@ -142,7 +144,9 @@ describe('Atom', () => {
       const computed = atom.scan((sum, value) => sum + value, 0);
 
       expect(computed).toBeInstanceOf(Computed);
-      expect(computed['_dependencies']).toStrictEqual([atom]);
+      expect((computed as Computed<number>)['_dependencies']).toStrictEqual([
+        atom,
+      ]);
     });
 
     it('accumulates the result across updates', () => {

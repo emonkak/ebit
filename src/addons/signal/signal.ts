@@ -52,16 +52,14 @@ export abstract class Signal<T> implements Bindable, HookObject<T> {
     return SignalObserver({ signal: this });
   }
 
-  map<TResult>(
-    selector: (value: T) => TResult,
-  ): Computed<TResult, [Signal<T>]> {
+  map<TResult>(selector: (value: T) => TResult): Signal<TResult> {
     return new Computed<TResult, [Signal<T>]>(selector, [this]);
   }
 
   scan<TResult>(
     accumulator: (result: TResult, value: T) => TResult,
     initialResult: TResult,
-  ): Computed<TResult, [Signal<T>]> {
+  ): Signal<TResult> {
     let result = initialResult;
     return new Computed<TResult, [Signal<T>]>(
       (value) => (result = accumulator(result, value)),
