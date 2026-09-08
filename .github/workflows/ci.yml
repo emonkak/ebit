@@ -25,6 +25,8 @@ jobs:
         run: pnpm exec playwright install chromium
       - name: Run CI
         run: pnpm run ci
+      - name: Run benchmark
+        run: pnpm run bench
       - name: Upload coverage results
         continue-on-error: true
         uses: coverallsapp/github-action@v2
