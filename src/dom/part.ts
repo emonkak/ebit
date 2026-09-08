@@ -17,7 +17,7 @@ interface StyleMap {
 }
 
 export abstract class DOMPart implements Part {
-  protected declare readonly _node: Node;
+  declare protected readonly _node: Node;
 
   splitPart(): DOMPart {
     return this;

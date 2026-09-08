@@ -14,15 +14,14 @@ export default defineConfig({
       screenshotFailures: false,
     },
     coverage: {
-      include: ['src/**'],
+      include: ['src/**/*.ts'],
       exclude: ['src/index.ts'],
     },
     projects: [
       {
-        extends: true,
         resolve: {
           alias: {
-            '@': path.join(__dirname, '/src'),
+            '@': path.join(import.meta.dirname, '/src'),
           },
         },
         test: {
@@ -37,7 +36,6 @@ export default defineConfig({
         },
       },
       {
-        extends: true,
         test: {
           name: 'integration',
           browser: {
@@ -47,7 +45,6 @@ export default defineConfig({
         },
       },
       {
-        extends: true,
         test: {
           name: 'biome',
           include: ['test/biome/**/*.test.ts'],
@@ -56,7 +53,6 @@ export default defineConfig({
       'tools/*/vitest.config.ts',
     ],
     restoreMocks: true,
-    clearMocks: true,
     unstubGlobals: true,
     unstubEnvs: true,
   },

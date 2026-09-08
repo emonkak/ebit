@@ -1,4 +1,4 @@
-import { bench, describe } from 'vitest';
+import { test } from 'vitest';
 import type { TemplateMode } from '@/base.js';
 import { DOMTemplate } from '@/dom/template.js';
 
@@ -56,32 +56,32 @@ const parseLargeSparseTemplate = html`
   </ul>
 `;
 
-describe('parse SMALL sparse templates', () => {
+test('parse SMALL sparse templates', ({ bench }) => {
   bench('DOMTemplate', () => {
     parseSmallSparseTemplate(DOMTemplate);
-  });
+  }).run();
 });
 
-describe('parse LARGE sparse templates', () => {
+test('parse LARGE sparse templates', ({ bench }) => {
   bench('DOMTemplate', () => {
     parseLargeSparseTemplate(DOMTemplate);
-  });
+  }).run();
 });
 
-describe('render SMALL sparse templates', () => {
+test('render SMALL sparse templates', ({ bench }) => {
   const template = parseSmallSparseTemplate(DOMTemplate);
 
   bench('DOMTemplate', () => {
     template.render();
-  });
+  }).run();
 });
 
-describe('render LARGE sparse templates', () => {
+test('render LARGE sparse templates', ({ bench }) => {
   const template = parseLargeSparseTemplate(DOMTemplate);
 
   bench('DOMTemplate', () => {
     template.render();
-  });
+  }).run();
 });
 
 function html(
