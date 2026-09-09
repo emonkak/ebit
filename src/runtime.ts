@@ -1,6 +1,7 @@
 import {
   Bind,
   type Commit,
+  type CommitHandler,
   type Dispatcher,
   Fragment,
   type HostAdapter,
@@ -535,7 +536,8 @@ export class Runtime implements Renderer, Dispatcher {
       }
 
       try {
-        const commitBatch: (() => Promise<void> | void)[] = [];
+        const commitBatch: { commit: Commit; handler: CommitHandler | null }[] =
+          [];
 
         for (const update of this._updateBatch) {
           const { handler, lanes, transaction } = update;
@@ -546,18 +548,22 @@ export class Runtime implements Renderer, Dispatcher {
               this._flushLanes,
               this,
             );
-            commitBatch.push(handler !== null ? () => handler(commit) : commit);
+            commitBatch.push({ commit, handler });
           }
         }
 
         if (commitBatch.length > 0) {
           if (this._flushLanes & UserHandlerLane) {
-            for (const commit of commitBatch) {
-              await commit();
+            for (const { commit, handler } of commitBatch) {
+              if (handler !== null) {
+                await handler(commit);
+              } else {
+                commit();
+              }
             }
           } else {
             const callback = () => {
-              for (const commit of commitBatch) {
+              for (const { commit } of commitBatch) {
                 commit();
               }
             };
