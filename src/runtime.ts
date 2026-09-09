@@ -512,10 +512,9 @@ export class Runtime implements Renderer, Dispatcher {
 
   private async _flush(): Promise<void> {
     while (true) {
-      // Only updates of equal priority are batched. The queue is lane-ordered,
-      // so a UserHandlerLane update is followed only by equal/lower-priority
-      // updates; stopping there commits it as its own batch.
-      do {
+      // Only updates of equal or higher priority are batched. The queue is
+      // lane-ordered, so a lower-priority update breaks the batch.
+      while (true) {
         const update = this._updateQueue.peek();
         if (
           update === undefined ||
@@ -529,39 +528,44 @@ export class Runtime implements Renderer, Dispatcher {
         }
         this._flushLanes |= update.lanes;
         this._updateBatch.push(this._updateQueue.dequeue()!);
-      } while (!(this._flushLanes & UserHandlerLane));
+      }
 
       if (this._flushLanes === NoLanes) {
         break;
       }
 
       try {
-        const commitBatch: Commit[] = [];
+        const commitBatch: (() => Promise<void> | void)[] = [];
 
         for (const update of this._updateBatch) {
-          const { lanes, transaction } = update;
+          const { handler, lanes, transaction } = update;
           if (transaction.pendingLanes & lanes) {
-            commitBatch.push(
-              runPipeline(update, this._middlewares, this._flushLanes, this),
+            const commit = runPipeline(
+              update,
+              this._middlewares,
+              this._flushLanes,
+              this,
             );
+            commitBatch.push(handler !== null ? () => handler(commit) : commit);
           }
         }
 
         if (commitBatch.length > 0) {
-          const callback = () => {
+          if (this._flushLanes & UserHandlerLane) {
             for (const commit of commitBatch) {
-              commit();
+              await commit();
             }
-          };
-          if (this._flushLanes & SyncLane) {
-            callback();
-          } else if (this._flushLanes & UserHandlerLane) {
-            // The loop stops at the last UserHandlerLane update, which carries
-            // the handler.
-            const { handler } = this._updateBatch.at(-1)!;
-            await handler!(callback);
           } else {
-            await this._adapter.requestCommit(callback);
+            const callback = () => {
+              for (const commit of commitBatch) {
+                commit();
+              }
+            };
+            if (this._flushLanes & SyncLane) {
+              callback();
+            } else {
+              await this._adapter.requestCommit(callback);
+            }
           }
         }
 
